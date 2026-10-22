@@ -157,5 +157,9 @@ MonoBehaviour:
   minPitch: -40
   maxPitch: 85
   turnSmooth: 15
+  zoomStep: 5
+  minFov: 20
+  maxFov: 80
   smoothTime: 0.08
   wallPadding: 0.2
+  lowCameraHeight: -0.1

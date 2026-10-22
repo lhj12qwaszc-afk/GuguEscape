@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 // 3인칭 카메라: 마우스 버튼을 꾹 누른 채 움직이면 구구 주변을 빙 돈다.
-// 버튼을 떼면 화면이 멈춘다 (어지럽지 않게). 휠로 가까이/멀리 본다.
+// 버튼을 떼면 화면이 멈춘다 (어지럽지 않게). 휠로 지금 화면을 그대로 확대/축소한다 (렌즈 줌).
 // 벽이 사이에 끼면 벽 앞으로 당겨 와서 구구가 가려지지 않게 한다.
 public class CameraFollow : MonoBehaviour
 {
@@ -22,12 +22,12 @@ public class CameraFollow : MonoBehaviour
     [Tooltip("돌아가는 부드러움. 작을수록 천천히 따라 돈다.")]
     public float turnSmooth = 15f;
 
-    [Header("휠 확대 · 축소")]
-    [Tooltip("휠 한 칸에 움직이는 거리 (m)")]
-    public float zoomStep = 0.4f;
-    [Tooltip("가장 가까이 / 가장 멀리 (m)")]
-    public float minDistance = 1.2f;
-    public float maxDistance = 7f;
+    [Header("휠 확대 · 축소 (렌즈 줌)")]
+    [Tooltip("휠 한 칸에 바뀌는 시야각 (도). 시야각이 작을수록 확대")]
+    public float zoomStep = 5f;
+    [Tooltip("가장 확대 / 가장 축소했을 때 시야각 (도)")]
+    public float minFov = 20f;
+    public float maxFov = 80f;
 
     [Header("부드러움 · 벽")]
     [Tooltip("따라가는 부드러움. 작을수록 빨리 붙는다.")]
@@ -41,8 +41,9 @@ public class CameraFollow : MonoBehaviour
     float pitch = 28f;  // 지금 위아래 각도 (처음엔 비스듬히 내려다봄)
     float targetYaw;    // 마우스가 원하는 각도 → 지금 각도가 천천히 따라간다
     float targetPitch = 28f;
-    float targetDistance;  // 휠이 원하는 거리 → distance가 천천히 따라간다
-    static float savedDistance = -1f; // 방을 옮겨도 확대한 정도를 기억
+    Camera cam;
+    float targetFov;              // 휠이 원하는 시야각 → 렌즈가 천천히 따라간다
+    static float savedFov = -1f;  // 방을 옮겨도 확대한 정도를 기억
     Vector3 velocity;
 
     void Start()
@@ -52,8 +53,9 @@ public class CameraFollow : MonoBehaviour
             var player = GameObject.FindWithTag("Player");
             if (player != null) target = player.transform;
         }
-        if (savedDistance > 0f) distance = savedDistance;
-        targetDistance = distance;
+        cam = GetComponent<Camera>();
+        if (savedFov > 0f) cam.fieldOfView = savedFov;
+        targetFov = cam.fieldOfView;
         SnapToTarget();
     }
 
@@ -74,21 +76,22 @@ public class CameraFollow : MonoBehaviour
             targetPitch = Mathf.Clamp(targetPitch - delta.y, minPitch, maxPitch);
         }
 
-        // 휠: 앞으로 굴리면 가까이, 뒤로 굴리면 멀리
+        // 휠: 앞으로 굴리면 확대, 뒤로 굴리면 축소. 카메라는 그 자리 그대로, 렌즈만 바꾼다.
+        // 그래서 벽·바닥·각도와 상관없이 어느 화면에서든 된다.
         if (!over && mouse != null)
         {
             // 휠 한 칸 값이 버전에 따라 120 또는 1로 온다 → 둘 다 "한 칸"으로 맞춘다
             float raw = mouse.scroll.ReadValue().y;
             float scroll = Mathf.Abs(raw) > 10f ? raw / 120f : raw;
-            targetDistance = Mathf.Clamp(targetDistance - scroll * zoomStep, minDistance, maxDistance);
-            savedDistance = targetDistance;
+            targetFov = Mathf.Clamp(targetFov - scroll * zoomStep, minFov, maxFov);
+            savedFov = targetFov;
         }
 
-        // 휙 돌지 않고 부드럽게 따라 돌기 · 다가가기
+        // 휙 돌지 않고 부드럽게 따라 돌기 · 확대하기
         float t = 1f - Mathf.Exp(-turnSmooth * Time.deltaTime);
         yaw = Mathf.LerpAngle(yaw, targetYaw, t);
         pitch = Mathf.Lerp(pitch, targetPitch, t);
-        distance = Mathf.Lerp(distance, targetDistance, t);
+        if (cam != null) cam.fieldOfView = Mathf.Lerp(cam.fieldOfView, targetFov, t);
     }
 
     // 구구가 움직인 뒤(Update 다음)에 카메라를 옮겨야 화면이 떨리지 않는다.
