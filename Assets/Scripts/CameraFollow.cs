@@ -72,10 +72,12 @@ public class CameraFollow : MonoBehaviour
             targetPitch = Mathf.Clamp(targetPitch - delta.y, minPitch, maxPitch);
         }
 
-        // 휠: 앞으로 굴리면 가까이, 뒤로 굴리면 멀리 (윈도우 휠 한 칸 = 120)
+        // 휠: 앞으로 굴리면 가까이, 뒤로 굴리면 멀리
         if (!over && mouse != null)
         {
-            float scroll = mouse.scroll.ReadValue().y / 120f;
+            // 휠 한 칸 값이 버전에 따라 120 또는 1로 온다 → 둘 다 "한 칸"으로 맞춘다
+            float raw = mouse.scroll.ReadValue().y;
+            float scroll = Mathf.Abs(raw) > 10f ? raw / 120f : raw;
             targetDistance = Mathf.Clamp(targetDistance - scroll * zoomStep, minDistance, maxDistance);
             savedDistance = targetDistance;
         }
