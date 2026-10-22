@@ -14,11 +14,13 @@ public class CameraFollow : MonoBehaviour
     public float lookHeight = 0.3f;
 
     [Header("마우스")]
-    [Tooltip("마우스 감도 (픽셀당 도)")]
-    public float mouseSensitivity = 0.15f;
-    [Tooltip("위아래로 볼 수 있는 범위 (도). 음수 = 아래에서 올려다봄")]
-    public float minPitch = -5f;
-    public float maxPitch = 65f;
+    [Tooltip("마우스 감도 (픽셀당 도). 크면 화면이 빨리 돌아 어지럽다.")]
+    public float mouseSensitivity = 0.07f;
+    [Tooltip("위아래로 볼 수 있는 범위 (도). 좁을수록 덜 어지럽다.")]
+    public float minPitch = 10f;
+    public float maxPitch = 50f;
+    [Tooltip("돌아가는 부드러움. 작을수록 천천히 따라 돈다.")]
+    public float turnSmooth = 10f;
 
     [Header("부드러움 · 벽")]
     [Tooltip("따라가는 부드러움. 작을수록 빨리 붙는다.")]
@@ -26,8 +28,10 @@ public class CameraFollow : MonoBehaviour
     [Tooltip("벽과 카메라 사이에 둘 여유 (m)")]
     public float wallPadding = 0.2f;
 
-    float yaw;          // 좌우 각도
-    float pitch = 28f;  // 위아래 각도 (처음엔 비스듬히 내려다봄)
+    float yaw;          // 지금 좌우 각도
+    float pitch = 28f;  // 지금 위아래 각도 (처음엔 비스듬히 내려다봄)
+    float targetYaw;    // 마우스가 원하는 각도 → 지금 각도가 천천히 따라간다
+    float targetPitch = 28f;
     Vector3 velocity;
 
     void Start()
@@ -55,9 +59,14 @@ public class CameraFollow : MonoBehaviour
         if (mouse != null && Cursor.lockState == CursorLockMode.Locked)
         {
             Vector2 delta = mouse.delta.ReadValue() * mouseSensitivity;
-            yaw += delta.x;
-            pitch = Mathf.Clamp(pitch - delta.y, minPitch, maxPitch);
+            targetYaw += delta.x;
+            targetPitch = Mathf.Clamp(targetPitch - delta.y, minPitch, maxPitch);
         }
+
+        // 휙 돌지 않고 부드럽게 따라 돌기
+        float t = 1f - Mathf.Exp(-turnSmooth * Time.deltaTime);
+        yaw = Mathf.LerpAngle(yaw, targetYaw, t);
+        pitch = Mathf.Lerp(pitch, targetPitch, t);
     }
 
     // 구구가 움직인 뒤(Update 다음)에 카메라를 옮겨야 화면이 떨리지 않는다.
@@ -72,7 +81,7 @@ public class CameraFollow : MonoBehaviour
     public void SnapToTarget()
     {
         if (target == null) return;
-        yaw = target.eulerAngles.y;
+        yaw = targetYaw = target.eulerAngles.y;
         velocity = Vector3.zero;
         transform.position = WantedPosition();
         transform.LookAt(LookPoint());
