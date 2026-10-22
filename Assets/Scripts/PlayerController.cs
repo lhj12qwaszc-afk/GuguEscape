@@ -7,14 +7,14 @@ using UnityEngine.InputSystem;
 public class PlayerController : MonoBehaviour
 {
     [Header("이동")]
-    [Tooltip("걷는 속도 (m/초). 구구 키가 0.3m라서 느리게 잡았다.")]
-    public float moveSpeed = 1.5f;
+    [Tooltip("걷는 속도 (m/초). 구구 키 0.6m 기준")]
+    public float moveSpeed = 2.5f;
     [Tooltip("몸을 돌리는 속도 (도/초)")]
     public float turnSpeed = 720f;
 
     [Header("점프 · 중력")]
-    [Tooltip("점프 높이 (m). 벽(3m)은 못 넘고 상자(0.5m)는 못 올라갈 정도")]
-    public float jumpHeight = 0.35f;
+    [Tooltip("점프 높이 (m). 상자(0.5m)에는 올라가고 벽은 못 넘는 정도")]
+    public float jumpHeight = 0.7f;
     public float gravity = -9.81f;
 
     CharacterController controller;
@@ -31,6 +31,8 @@ public class PlayerController : MonoBehaviour
     {
         var keyboard = Keyboard.current;
         if (keyboard == null) return;
+        // 방을 옮기는 중이거나 게임이 끝나면 키 입력을 받지 않는다 (중력은 계속)
+        bool locked = GameSession.Instance != null && GameSession.Instance.InputLocked;
 
         // 1) WASD 입력 읽기
         Vector2 input = Vector2.zero;
@@ -38,7 +40,7 @@ public class PlayerController : MonoBehaviour
         if (keyboard.sKey.isPressed) input.y -= 1;
         if (keyboard.dKey.isPressed) input.x += 1;
         if (keyboard.aKey.isPressed) input.x -= 1;
-        input = Vector2.ClampMagnitude(input, 1f);
+        input = locked ? Vector2.zero : Vector2.ClampMagnitude(input, 1f);
 
         // 2) 카메라가 보는 방향 기준으로 앞/옆 방향 만들기 (위아래는 빼고)
         Vector3 forward = cam != null ? cam.forward : Vector3.forward;
@@ -58,7 +60,7 @@ public class PlayerController : MonoBehaviour
         if (controller.isGrounded)
         {
             if (verticalSpeed < 0) verticalSpeed = -1f; // 바닥에 붙어 있게 살짝 누름
-            if (keyboard.spaceKey.wasPressedThisFrame)
+            if (!locked && keyboard.spaceKey.wasPressedThisFrame)
                 verticalSpeed = Mathf.Sqrt(jumpHeight * -2f * gravity); // 원하는 높이까지 올라가는 속도
         }
         verticalSpeed += gravity * Time.deltaTime;
