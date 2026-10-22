@@ -1,9 +1,9 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-// 3인칭 카메라: 마우스로 구구 주변을 빙 돌며 따라간다.
+// 3인칭 카메라: 마우스 버튼을 꾹 누른 채 움직이면 구구 주변을 빙 돈다.
+// 버튼을 떼면 화면이 멈춘다 (어지럽지 않게).
 // 벽이 사이에 끼면 벽 앞으로 당겨 와서 구구가 가려지지 않게 한다.
-// Esc → 마우스 커서 보이기 / 게임 화면 클릭 → 다시 숨기기
 public class CameraFollow : MonoBehaviour
 {
     [Tooltip("따라갈 대상. 비워 두면 Player 태그가 붙은 물체를 찾는다.")]
@@ -15,7 +15,7 @@ public class CameraFollow : MonoBehaviour
 
     [Header("마우스")]
     [Tooltip("마우스 감도 (픽셀당 도). 크면 화면이 빨리 돌아 어지럽다.")]
-    public float mouseSensitivity = 0.07f;
+    public float mouseSensitivity = 0.12f;
     [Tooltip("위아래로 볼 수 있는 범위 (도). 좁을수록 덜 어지럽다.")]
     public float minPitch = 10f;
     public float maxPitch = 50f;
@@ -41,22 +41,20 @@ public class CameraFollow : MonoBehaviour
             var player = GameObject.FindWithTag("Player");
             if (player != null) target = player.transform;
         }
-        SetCursorLocked(true);
         SnapToTarget();
     }
 
     void Update()
     {
         bool over = GameSession.Instance != null && GameSession.Instance.IsOver;
-        var keyboard = Keyboard.current;
         var mouse = Mouse.current;
 
-        // 커서 잠금: Esc로 풀고, 클릭하면 다시 잠근다. 게임이 끝나면 버튼을 누를 수 있게 푼다.
-        if (over || (keyboard != null && keyboard.escapeKey.wasPressedThisFrame)) SetCursorLocked(false);
-        else if (mouse != null && mouse.leftButton.wasPressedThisFrame) SetCursorLocked(true);
+        // 왼쪽이나 오른쪽 버튼을 누르고 있는 동안만 돌린다. 게임이 끝나면 버튼을 누를 수 있게 안 돌린다.
+        bool dragging = !over && mouse != null && (mouse.leftButton.isPressed || mouse.rightButton.isPressed);
+        // 누르는 동안엔 커서를 숨기고 가둬서 창 밖으로 안 나가게, 떼면 다시 보이게
+        SetCursorLocked(dragging);
 
-        // 커서가 잠겨 있을 때만 마우스로 카메라를 돌린다
-        if (mouse != null && Cursor.lockState == CursorLockMode.Locked)
+        if (dragging)
         {
             Vector2 delta = mouse.delta.ReadValue() * mouseSensitivity;
             targetYaw += delta.x;
