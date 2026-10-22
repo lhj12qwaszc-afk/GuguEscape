@@ -153,9 +153,9 @@ MonoBehaviour:
   target: {fileID: 0}
   distance: 3.4
   lookHeight: 0.3
-  mouseSensitivity: 0.12
-  minPitch: 10
-  maxPitch: 50
-  turnSmooth: 10
+  mouseSensitivity: 0.18
+  minPitch: 0
+  maxPitch: 70
+  turnSmooth: 15
   smoothTime: 0.08
   wallPadding: 0.2
