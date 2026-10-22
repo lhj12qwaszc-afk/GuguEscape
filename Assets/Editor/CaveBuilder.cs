@@ -99,7 +99,7 @@ public static class CaveBuilder
 
     static void BuildRoom1(GameObject player, GameObject cam)
     {
-        var scene = RoomBase(player, cam, 8f, 8f, 1, out var props, out var lighting, out var gameplay);
+        var scene = RoomBase(player, cam, 8f, 8f, 1, out var props, out var lighting, out var gameplay, "#2A2218");
         Box(props, "CrateStack_A", new Vector3(2.3f, 0.5f, 3.3f), new Vector3(0.7f, 1f, 0.7f), "M_Crate");
         Box(props, "CrateStack_B", new Vector3(3.4f, 0.5f, 1.9f), new Vector3(0.7f, 1f, 0.7f), "M_Crate");
         Box(props, "CrateStack_C", new Vector3(1.6f, 0.5f, 2.2f), new Vector3(0.7f, 1f, 0.7f), "M_Crate");
@@ -107,8 +107,10 @@ public static class CaveBuilder
         Box(props, "Crate_2", new Vector3(-2.6f, 0.25f, 1.7f), Vector3.one * 0.5f, "M_Crate");
         Box(props, "Crate_3", new Vector3(0.8f, 0.25f, -1f), Vector3.one * 0.5f, "M_Crate");
         Box(props, "Crate_Big", new Vector3(-3f, 0.5f, -2.5f), Vector3.one, "M_Crate");
-        Torch(lighting, "TorchLight_1", new Vector3(-3.2f, 2f, -3.2f));
-        Torch(lighting, "TorchLight_2", new Vector3(3.2f, 2f, -0.5f));
+        // 밝은 창고: 따뜻한 노란 등 3개
+        AddLight(lighting, "Lamp_1", new Vector3(-3.2f, 2.2f, -3.2f), "#FFC46B", 4f, 6f);
+        AddLight(lighting, "Lamp_2", new Vector3(3.2f, 2.2f, -0.5f), "#FFC46B", 4f, 6f);
+        AddLight(lighting, "Lamp_3", new Vector3(-1f, 2.2f, 3f), "#FFC46B", 3f, 5f);
         SnackAt(gameplay, "Room1", new Vector3(3.3f, 0.4f, 3.3f), false);
         Save(scene, "Cave_Room1");
     }
@@ -117,14 +119,15 @@ public static class CaveBuilder
 
     static void BuildRoom2(GameObject player, GameObject cam)
     {
-        var scene = RoomBase(player, cam, 9f, 9f, 2, out var props, out var lighting, out var gameplay);
+        var scene = RoomBase(player, cam, 9f, 9f, 2, out var props, out var lighting, out var gameplay, "#121A2C");
         int n = 1;
         foreach (float z in new[] { -1.5f, 0.5f, 2.5f })
             foreach (float x in new[] { -2.5f, 0f, 2.5f })
                 Pillar(props, "Pillar_" + n++, new Vector3(x, 0, z), 2f, 0.7f);
-        Torch(lighting, "TorchLight_1", new Vector3(-2.5f, 2.3f, -1.5f));
-        Torch(lighting, "TorchLight_2", new Vector3(2.5f, 2.3f, 0.5f));
-        Torch(lighting, "TorchLight_3", new Vector3(-2.5f, 2.3f, 2.5f));
+        // 조금 어두운 기둥 숲: 푸른 달빛
+        AddLight(lighting, "Moon_1", new Vector3(-2.5f, 2.6f, -1.5f), "#7FA0E8", 2f, 4.5f);
+        AddLight(lighting, "Moon_2", new Vector3(2.5f, 2.6f, 0.5f), "#7FA0E8", 2f, 4.5f);
+        AddLight(lighting, "Moon_3", new Vector3(-2.5f, 2.6f, 2.5f), "#7FA0E8", 2f, 4.5f);
         SnackAt(gameplay, "Room2", new Vector3(0f, 0.4f, 3.5f), false);
         Save(scene, "Cave_Room2");
     }
@@ -133,14 +136,16 @@ public static class CaveBuilder
 
     static void BuildRoom3(GameObject player, GameObject cam)
     {
-        var scene = RoomBase(player, cam, 8f, 8f, 3, out var props, out var lighting, out var gameplay);
+        var scene = RoomBase(player, cam, 8f, 8f, 3, out var props, out var lighting, out var gameplay, "#3A3128");
         Box(props, "Step_1", new Vector3(-1.2f, 0.25f, 1.2f), new Vector3(0.9f, 0.5f, 0.9f), "M_Crate");
         Box(props, "Step_2", new Vector3(-2.2f, 0.5f, 2.2f), new Vector3(0.9f, 1f, 0.9f), "M_Crate");
         Box(props, "Step_3", new Vector3(-3.2f, 0.75f, 3.2f), new Vector3(0.9f, 1.5f, 0.9f), "M_Crate");
         Box(props, "Crate_1", new Vector3(2.5f, 0.25f, 2.8f), Vector3.one * 0.5f, "M_Crate");
         Box(props, "Crate_2", new Vector3(3f, 0.25f, -2f), Vector3.one * 0.5f, "M_Crate");
-        Torch(lighting, "TorchLight_1", new Vector3(-3.2f, 2.6f, 1.5f));
-        Torch(lighting, "TorchLight_2", new Vector3(3f, 2f, 1f));
+        // 밝은 방: 횃불 + 위에서 상자 계단을 비추는 빛줄기
+        AddLight(lighting, "TorchLight_1", new Vector3(2.5f, 2.2f, 1.5f), "#FFB066", 5f, 6.5f);
+        AddLight(lighting, "TorchLight_2", new Vector3(1f, 2.2f, -2.5f), "#FFB066", 5f, 6.5f);
+        SpotLight(lighting, "LightShaft", new Vector3(-2.7f, 3.6f, 2.7f), "#FFE7B0", 22f, 65f);
         SnackAt(gameplay, "Room3", new Vector3(-3.2f, 1.9f, 3.2f), false);
         Save(scene, "Cave_Room3");
     }
@@ -149,11 +154,12 @@ public static class CaveBuilder
 
     static void BuildRoom4(GameObject player, GameObject cam)
     {
-        var scene = RoomBase(player, cam, 8f, 8f, 4, out var props, out var lighting, out var gameplay, "#0A0910");
+        var scene = RoomBase(player, cam, 8f, 8f, 4, out var props, out var lighting, out var gameplay, "#050408");
         Box(props, "LowWall_1", new Vector3(-2.4f, 0.5f, 2.3f), new Vector3(3.2f, 1f, 0.3f), "M_Wall");
         Box(props, "LowWall_2", new Vector3(1.6f, 0.5f, 0.2f), new Vector3(0.3f, 1f, 3f), "M_Wall");
         Box(props, "Crate_1", new Vector3(2.8f, 0.25f, 2.8f), Vector3.one * 0.5f, "M_Crate");
-        AddLight(lighting, "DimLight", new Vector3(0, 1.5f, -3f), "#FF8A3D", 1f, 3f);
+        // 아주 어두운 방: 입구 쪽 희미한 불빛 하나뿐
+        AddLight(lighting, "DimLight", new Vector3(0, 1.5f, -3f), "#FF8A3D", 0.6f, 2.5f);
         SnackAt(gameplay, "Room4", new Vector3(-3.2f, 0.4f, 3.2f), true);
         Save(scene, "Cave_Room4");
     }
@@ -162,13 +168,14 @@ public static class CaveBuilder
 
     static void BuildRoom5(GameObject player, GameObject cam)
     {
-        var scene = RoomBase(player, cam, 9f, 9f, 5, out var props, out var lighting, out var gameplay);
+        var scene = RoomBase(player, cam, 9f, 9f, 5, out var props, out var lighting, out var gameplay, "#101A12");
         Box(props, "MazeWall_1", new Vector3(-1.175f, 0.75f, -1.5f), new Vector3(6.35f, 1.5f, 0.3f), "M_Wall");
         Box(props, "MazeWall_2", new Vector3(1.175f, 0.75f, 1.5f), new Vector3(6.35f, 1.5f, 0.3f), "M_Wall");
         Box(props, "MazeWall_3", new Vector3(-1f, 0.75f, 3.3f), new Vector3(0.3f, 1.5f, 2.1f), "M_Wall");
-        Torch(lighting, "TorchLight_1", new Vector3(3.5f, 2f, -3f));
-        Torch(lighting, "TorchLight_2", new Vector3(3.5f, 2f, 0f));
-        Torch(lighting, "TorchLight_3", new Vector3(-3.5f, 2f, 2.5f));
+        // 어두운 미로: 초록 이끼빛
+        AddLight(lighting, "Moss_1", new Vector3(3.5f, 2f, -3f), "#7FD08A", 2f, 4f);
+        AddLight(lighting, "Moss_2", new Vector3(3.5f, 2f, 0f), "#7FD08A", 2f, 4f);
+        AddLight(lighting, "Moss_3", new Vector3(-3.5f, 2f, 2.5f), "#7FD08A", 2f, 4f);
         SnackAt(gameplay, "Room5", new Vector3(-3.5f, 0.4f, 3.5f), false);
         Save(scene, "Cave_Room5");
     }
