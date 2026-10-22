@@ -154,8 +154,8 @@ MonoBehaviour:
   distance: 3.4
   lookHeight: 0.3
   mouseSensitivity: 0.18
-  minPitch: 0
-  maxPitch: 70
+  minPitch: -40
+  maxPitch: 85
   turnSmooth: 15
   smoothTime: 0.08
   wallPadding: 0.2

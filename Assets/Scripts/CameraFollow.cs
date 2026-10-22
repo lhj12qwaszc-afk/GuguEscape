@@ -16,9 +16,9 @@ public class CameraFollow : MonoBehaviour
     [Header("마우스")]
     [Tooltip("마우스 감도 (픽셀당 도). 크면 화면이 빨리 돌아 어지럽다.")]
     public float mouseSensitivity = 0.18f;
-    [Tooltip("위아래로 볼 수 있는 범위 (도). 0 = 옆에서, 70 = 위에서 내려다봄")]
-    public float minPitch = 0f;
-    public float maxPitch = 70f;
+    [Tooltip("위아래로 볼 수 있는 범위 (도). 음수 = 아래에서 올려다봄, 85 = 바로 위에서. 90을 넘으면 화면이 뒤집힌다.")]
+    public float minPitch = -40f;
+    public float maxPitch = 85f;
     [Tooltip("돌아가는 부드러움. 작을수록 천천히 따라 돈다.")]
     public float turnSmooth = 15f;
 
