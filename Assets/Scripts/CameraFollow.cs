@@ -34,6 +34,8 @@ public class CameraFollow : MonoBehaviour
     public float smoothTime = 0.08f;
     [Tooltip("벽과 카메라 사이에 둘 여유 (m)")]
     public float wallPadding = 0.2f;
+    [Tooltip("밑에서 볼 때 카메라 높이 (구구 중심 기준, m). 바닥 바로 위")]
+    public float lowCameraHeight = -0.1f;
 
     float yaw;          // 지금 좌우 각도
     float pitch = 28f;  // 지금 위아래 각도 (처음엔 비스듬히 내려다봄)
@@ -94,7 +96,7 @@ public class CameraFollow : MonoBehaviour
     {
         if (target == null) return;
         transform.position = Vector3.SmoothDamp(transform.position, WantedPosition(), ref velocity, smoothTime);
-        transform.LookAt(LookPoint());
+        Aim();
     }
 
     // 방을 옮긴 직후: 구구가 보는 방향 뒤로 카메라를 바로 붙인다
@@ -104,21 +106,42 @@ public class CameraFollow : MonoBehaviour
         yaw = targetYaw = target.eulerAngles.y;
         velocity = Vector3.zero;
         transform.position = WantedPosition();
-        transform.LookAt(LookPoint());
+        Aim();
     }
 
     Vector3 LookPoint() => target.position + Vector3.up * lookHeight;
 
+    // 구구 머리를 바라보고, 밑에서 볼 때(pitch < 0)는 렌즈만 위로 든다
+    void Aim()
+    {
+        transform.LookAt(LookPoint());
+        if (pitch < 0f) transform.Rotate(pitch * 0.6f, 0f, 0f, Space.Self);
+    }
+
     Vector3 WantedPosition()
     {
         Vector3 from = LookPoint();
-        // 각도(yaw, pitch)만큼 돌린 방향으로 distance만큼 뒤에 선다
-        Vector3 dir = Quaternion.Euler(pitch, yaw, 0f) * Vector3.back;
+        Vector3 wanted;
+        if (pitch >= 0f)
+        {
+            // 위에서 볼 때: 각도(yaw, pitch)만큼 돌린 방향으로 distance만큼 뒤에 선다
+            wanted = from + Quaternion.Euler(pitch, yaw, 0f) * Vector3.back * distance;
+        }
+        else
+        {
+            // 밑에서 볼 때: 바닥 아래로 내려가지 않고 바닥 바로 위 낮은 높이에 선다.
+            // 그래야 휠로 멀어져도 바닥에 막히지 않는다. (0~-15도 사이에서 서서히 낮아짐)
+            wanted = from + Quaternion.Euler(0f, yaw, 0f) * Vector3.back * distance;
+            float low = target.position.y + lowCameraHeight;
+            wanted.y = Mathf.Lerp(from.y, low, Mathf.Clamp01(-pitch / 15f));
+        }
+
         // 구구 머리에서 카메라 자리까지 공을 굴려 보고, 벽에 맞으면 그 앞에 멈춘다
-        if (Physics.SphereCast(from, 0.15f, dir, out RaycastHit hit, distance,
+        Vector3 dir = wanted - from;
+        if (Physics.SphereCast(from, 0.12f, dir.normalized, out RaycastHit hit, dir.magnitude,
                                ~0, QueryTriggerInteraction.Ignore) && hit.transform != target)
-            return from + dir * Mathf.Max(0.3f, hit.distance - wallPadding);
-        return from + dir * distance;
+            return from + dir.normalized * Mathf.Max(0.3f, hit.distance - wallPadding);
+        return wanted;
     }
 
     static void SetCursorLocked(bool locked)
