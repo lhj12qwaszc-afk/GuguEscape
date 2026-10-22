@@ -45,6 +45,7 @@ public class GameSession : MonoBehaviour
         DontDestroyOnLoad(gameObject);
         TimeLeft = timeLimit;
         CreateFader();
+        gameObject.AddComponent<GameHud>();
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
@@ -93,11 +94,14 @@ public class GameSession : MonoBehaviour
         Debug.Log("시간 초과… 실패");
     }
 
-    // 처음부터 다시: 관리자를 지우고 가운데 방을 다시 불러온다
+    // 처음부터 다시: 과자·시간을 처음으로 돌리고, 가운데 방 천장 아래에서 다시 떨어진다
     public void Restart()
     {
-        Destroy(gameObject);
-        SceneManager.LoadScene(HubScene);
+        if (traveling) return;
+        collected.Clear();
+        TimeLeft = timeLimit;
+        IsOver = false; IsWin = false;
+        StartCoroutine(TravelRoutine(HubScene, "Start"));
     }
 
     // ---------- 방 이동 ----------
